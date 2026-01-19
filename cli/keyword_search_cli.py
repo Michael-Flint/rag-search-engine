@@ -3,6 +3,7 @@
 import argparse
 from pathlib import Path
 from retriever import load_movies
+from text_cleaner import cleaner
 
 
 def main() -> None:
@@ -22,7 +23,7 @@ def main() -> None:
 
             for movie in movies_list:
                 title = movie.get("title", "")
-                if args.query.lower() in title.lower():
+                if cleaner(args.query) in cleaner(title):
                     matches.append(movie)
             
             if matches:
