@@ -42,9 +42,14 @@ def tokenize_text(text: str) -> list[str]:
     stop_words = load_stopwords()
 
     for token in tokens:
+        # For each word in the list
         if token:
+            # Make sure it exists (ie not empty)
             if token not in stop_words:
+                # Then make sure it is not in the blocked words list (eg 'The')
+                # and only then add it to the allowed list.
                 valid_tokens.append(token)
+
 
     return valid_tokens
 
