@@ -1,6 +1,7 @@
 import string
 
 from .search_utils import DEFAULT_SEARCH_LIMIT, load_movies, load_stopwords
+from nltk.stem import PorterStemmer
 
 
 def search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[dict]:
@@ -39,7 +40,12 @@ def tokenize_text(text: str) -> list[str]:
     tokens = text.split()
     valid_tokens = []
 
+    # Load the list of words that we do not consider to be a match
     stop_words = load_stopwords()
+
+    # Create an instance of PorterStemmer from nltk.stem
+    # Stems are used to allow concept matches such as runs, running and ran instead of precise text matches
+    stemmer = PorterStemmer()
 
     for token in tokens:
         # For each word in the list
@@ -48,7 +54,7 @@ def tokenize_text(text: str) -> list[str]:
             if token not in stop_words:
                 # Then make sure it is not in the blocked words list (eg 'The')
                 # and only then add it to the allowed list.
-                valid_tokens.append(token)
+                valid_tokens.append(stemmer.stem(token))
 
 
     return valid_tokens
