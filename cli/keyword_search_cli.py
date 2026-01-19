@@ -22,7 +22,7 @@ def main() -> None:
 
             for movie in movies_list:
                 title = movie.get("title", "")
-                if args.query in title:
+                if args.query.lower() in title.lower():
                     matches.append(movie)
             
             if matches:
