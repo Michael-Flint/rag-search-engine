@@ -2,7 +2,7 @@
 
 import argparse
 from pathlib import Path
-from retriever import load_movies
+from file_retriever import load_movies
 from text_cleaner import cleaner
 
 
@@ -20,11 +20,28 @@ def main() -> None:
             print(f"Searching for: {args.query}")
             movies_list = load_movies()
             matches = []
+            query_words = []
+            query_words = cleaner(args.query).split()
+            title_words = []
 
-            for movie in movies_list:
-                title = movie.get("title", "")
-                if cleaner(args.query) in cleaner(title):
+            for movie in movies_list:                
+                title_words = cleaner(movie.get("title", "")).split()  
+                # Split without arguments automatically strips whitespace and ignores empty tokens
+
+                #ChatGPT version:  if any(qw in tw for qw in query_words for tw in title_words):
+
+                match_found = False                
+                for qw in query_words:
+                    for tw in title_words:
+                        if qw in tw:
+                            match_found = True
+                            break  # stop checking more title words for this query word
+                    if match_found:
+                        break      # stop checking other query words
+
+                if match_found:
                     matches.append(movie)
+
             
             if matches:
                 top_matches = sorted(matches, key=lambda m: m["id"])[:5]                
