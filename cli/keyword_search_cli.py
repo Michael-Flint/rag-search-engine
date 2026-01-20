@@ -1,9 +1,41 @@
 #!/usr/bin/env python3
 
 import argparse
+import sys
 
-from lib.keyword_search import search_command
+from lib.keyword_search import search_command, tokenize_text
 from lib.index import InvertedIndex
+
+
+def search_and_print(idx, tokens):
+    results = []
+    seen_ids = set()
+
+    for token in tokens:
+        # Get matching document IDs for this token
+        doc_ids = idx.get_documents(token)
+
+        for doc_id in doc_ids:
+            # Avoid duplicates
+            if doc_id in seen_ids:
+                continue
+
+            seen_ids.add(doc_id)
+            results.append(doc_id)
+
+            # Stop once we have 5 results
+            if len(results) == 5:
+                break
+
+        if len(results) == 5:
+            break
+
+
+    # Print the resulting document titles and IDs.
+    for doc_id in results:
+        movie = idx.docmap[doc_id]
+        print(f"{movie['title']} (ID: {doc_id})")
+        #    print(f"{i}. {res['title']}")
 
 
 def main() -> None:
@@ -35,26 +67,33 @@ def main() -> None:
             idx = InvertedIndex()
             # Build the index
             idx.build()
-
             # Save it to disk
-            idx.save()
-
-            # Print a message containing the first ID of the document for the token 'merida', which should be document 4651                            
-            docs = idx.get_documents("merida")
-            if docs:
-                print(f"First document ID for token 'merida' is {docs[0]}")
-            else:
-                print("No documents found for token 'merida'")
+            idx.save()            
 
         case "index":
             print(f"Rebuilding index, force={args.force}")
             pass
 
         case "search":            
+            print("Loading index")
+            idx = InvertedIndex()
+
+            try:            
+                idx.load()
+            except FileNotFoundError as e:
+                print("Index not found, run build first")
+                sys.exit(1)
+
             print(f"Searching for: {args.query}")
-            results = search_command(args.query)
-            for i, res in enumerate(results, 1):
-                print(f"{i}. {res['title']}")
+
+            #results = search_command(args.query)
+            #for i, res in enumerate(results, 1):
+            #    print(f"{i}. {res['title']}")
+
+            # Iterate over each token in the query and use the index to get any matching documents for each token.            
+            search_and_print(idx, tokenize_text(args.query))
+
+
 
         case _:
             parser.print_help()
@@ -62,3 +101,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+

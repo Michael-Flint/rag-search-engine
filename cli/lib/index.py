@@ -1,31 +1,21 @@
-#import json
 import os
 import pickle
-#import re
 from collections import defaultdict
 from .keyword_search import tokenize_text
-from .search_utils import load_movies
+from .search_utils import load_movies, CACHE_PATH
 
-DEFAULT_SEARCH_LIMIT = 5
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 class InvertedIndex:
-    #def __init__(self, index, docmap):
     def __init__(self):        
         self.index = defaultdict(set)   # Dictionary that maps tokens (strings) to sets of document IDs (integers)
         self.docmap = {}                # Dictionary that maps document IDs (int) to their full document object
-        #self.index = index      
-        #self.docmap = docmap    
 
 
 
     def __add_document(self, doc_id, text):
         # Tokenise the input text
         tokens = tokenize_text(text)
-        
-        # Store the full document
-        self.docmap[doc_id] = text
         
         # Add each token to the index with the document ID
         for token in tokens:
@@ -51,20 +41,42 @@ class InvertedIndex:
             doc_id = m["id"]
             # When adding the movie data to the index with __add_document(), concatenate the title and the description and use that as the input text
             text = f"{m['title']} {m['description']}"
-            self._InvertedIndex__add_document(doc_id, text)
+            self.docmap[doc_id] = m
+            self.__add_document(doc_id, text)
 
+
+    def load(self):
+        # Load the index and docmap from disk using pickle
+        # File paths
+        index_path = os.path.join(CACHE_PATH, "index.pkl")
+        docmap_path = os.path.join(CACHE_PATH, "docmap.pkl")
+        
+        # Raise an error if the files don't exist
+        if not os.path.exists(index_path):
+            raise FileNotFoundError(f"Index file not found: {index_path}")
+
+        if not os.path.exists(docmap_path):
+            raise FileNotFoundError(f"Docmap file not found: {docmap_path}")
+
+        # Load index
+        with open(index_path, "rb") as f:
+            self.index = pickle.load(f)
+
+        # Load docmap
+        with open(docmap_path, "rb") as f:
+            self.docmap = pickle.load(f)
+        
+    
 
 
     def save(self):
         # Save the index and docmap attributes to disk using the pickle modules dump function
-        
-        cache_path = os.path.join(PROJECT_ROOT, "cache")
         # Create the cache directory if it doesn't exist
-        os.makedirs(cache_path, exist_ok=True)
+        os.makedirs(CACHE_PATH, exist_ok=True)
 
         # File paths
-        index_path = os.path.join(cache_path, "index.pkl")
-        docmap_path = os.path.join(cache_path, "docmap.pkl")
+        index_path = os.path.join(CACHE_PATH, "index.pkl")
+        docmap_path = os.path.join(CACHE_PATH, "docmap.pkl")
 
         # Save index
         with open(index_path, "wb") as f:
