@@ -57,6 +57,12 @@ def main() -> None:
         help="Force rebuilding even if index exists",
     )
 
+    #TermFrequency command
+    search_parser = subparsers.add_parser("tf", help="Count the instances of a term in a DocumentID")
+    search_parser.add_argument("doc_id", type=int, help="tf DocumentID term")
+    search_parser.add_argument("term", type=str, help="tf DocumentID term")
+
+
 
     args = parser.parse_args()
 
@@ -93,6 +99,21 @@ def main() -> None:
             # Iterate over each token in the query and use the index to get any matching documents for each token.            
             search_and_print(idx, tokenize_text(args.query))
 
+        case "tf": 
+            #print("Loading index")
+            idx = InvertedIndex()
+
+            try:            
+                idx.load()
+            except FileNotFoundError as e:
+                print("Index not found, run build first")
+                sys.exit(1)
+
+            #print(f"Searching documentID: {args.doc_id} for: {args.term}")
+            
+            term_freq = idx.get_tf(args.doc_id, args.term)
+            #print(f"Found {term_freq} instances of {args.term} in document_id: {args.doc_id}")
+            print(term_freq)
 
 
         case _:
