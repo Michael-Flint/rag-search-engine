@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import math
 import sys
 
 from lib.keyword_search import search_command, tokenize_text
@@ -46,6 +47,10 @@ def main() -> None:
     search_parser = subparsers.add_parser("search", help="Search movies using BM25")    #Search = verb, "Do a search"
     search_parser.add_argument("query", type=str, help="Search query")                  #Query = noun,  "I want you to search for NOUN"
 
+    #Inverse document frequency (rare terms are more important than common ones)
+    search_parser = subparsers.add_parser("idf", help="Test the rarity of a term")
+    search_parser.add_argument("term", type=str, help="Term to be tested")
+
     #Build an index 
     build_parser = subparsers.add_parser("build", help="Build movie index and save it to disk")
 
@@ -76,12 +81,7 @@ def main() -> None:
             # Save it to disk
             idx.save()            
 
-        case "index":
-            print(f"Rebuilding index, force={args.force}")
-            pass
-
-        case "search":            
-            print("Loading index")
+        case "idf":
             idx = InvertedIndex()
 
             try:            
@@ -90,6 +90,25 @@ def main() -> None:
                 print("Index not found, run build first")
                 sys.exit(1)
 
+            tokenised_text = tokenize_text(args.term)
+            search_term = tokenised_text[0]
+            total_doc_count = idx.num_documents()
+            term_freq = idx.num_documents_with_token(search_term)
+            idf = math.log((total_doc_count + 1)/(term_freq + 1))       # +1's are to prevent division by zero errors when term not found
+            
+            print(f"Inverse document frequency of '{args.term}': {idf:.2f}")
+
+        case "index":
+            print(f"Rebuilding index, force={args.force}")
+            
+        case "search":            
+            print("Loading index")
+            idx = InvertedIndex()
+            try:            
+                idx.load()
+            except FileNotFoundError as e:
+                print("Index not found, run build first")
+                sys.exit(1)
             print(f"Searching for: {args.query}")
 
             #results = search_command(args.query)

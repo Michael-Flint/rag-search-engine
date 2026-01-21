@@ -29,8 +29,8 @@ class InvertedIndex:
             # The Counter wrapper handles instantiating at 0 and has some methods that might be helpful too            
             self.term_frequencies[doc_id][token] += 1       # Increment count
         
-
-
+    
+    
     def build(self):
         # Iterate over all of the movies and add them to both the index and the docmap            
         # Load movie data
@@ -125,3 +125,38 @@ class InvertedIndex:
         with open(termfreq_path, "wb") as f:
             pickle.dump(self.term_frequencies, f)        
 
+
+
+    def num_documents(self):
+        # Number of documents in the index
+        return len(self.docmap)
+    
+    def num_documents_with_token(self, token):
+        # Number of documents that contain the specific token (term)
+        return len(self.index.get(token, set()))   
+    
+    def num_unique_tokens(self):
+        # Number of unique tokens (terms) in the index
+        return len(self.index)
+    
+    
+    def tokens_in_doc(self, doc_id):
+        # Number of tokens (terms) in a specific document
+        return sum(self.term_frequencies[doc_id].values())
+
+
+    def total_token_usage(self, token):
+        # Total number of times a given token (term) is found in every document
+        return sum(
+            counter.get(token, 0)
+            for counter in self.term_frequencies.values()
+        )
+    
+    def total_tokens(self):
+        # Total number of tokens (terms) across all documents
+        return sum(
+            sum(counter.values())
+            for counter in self.term_frequencies.values()
+        )
+
+    
