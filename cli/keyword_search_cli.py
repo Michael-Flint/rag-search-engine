@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import math
 import sys
 
 from lib.keyword_search import search_command, tokenize_text
@@ -74,10 +73,28 @@ def main() -> None:
     search_parser.add_argument("term", type=str, help="tfidf DocumentID term")
 
 
+    #Okapi BM25 version of IDF
+    search_parser = subparsers.add_parser("bm25idf", help="Okapi BM25 version of Inverse Document Frequency")
+    search_parser.add_argument("term", type=str, help="bm25idf term")
+
+
 
     args = parser.parse_args()
 
     match args.command:
+        case "bm25idf":
+            idx = InvertedIndex()
+
+            try:            
+                idx.load()
+            except FileNotFoundError as e:
+                print("Index not found, run build first")
+                sys.exit(1)
+            bm25idf = idx.get_bm25_idf(args.term)            
+            print(f"BM25 IDF score of '{args.term}': {bm25idf:.2f}")
+        
+        
+        
         case "build":
             print("Building movie index")
             # Instantiate the class

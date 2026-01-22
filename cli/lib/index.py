@@ -45,6 +45,15 @@ class InvertedIndex:
             self.docmap[doc_id] = m
             self.__add_document(doc_id, text)
 
+    def get_bm25_idf(self, term: str) -> float:
+        tokens = tokenize_text(term)
+        if len(tokens) != 1:
+            raise ValueError("term must be a single token")
+        token = tokens[0]
+        num_docs_with_term = len(self.index[token]) 
+        num_docs_without_term = len(self.docmap) - num_docs_with_term
+        bm25_idf = math.log((num_docs_without_term + 0.5) / (num_docs_with_term + 0.5) + 1)  # 0.5 and 1 are for edge cases and smoothing
+        return bm25_idf
 
     def get_documents(self, token: str):
         # Get the set of document ID's for a given token (set it to lowercase)
@@ -58,9 +67,8 @@ class InvertedIndex:
             raise ValueError("term must be a single token")
         token = tokens[0]
         doc_count = len(self.docmap)
-        term_doc_count = len(self.index[token])
-        return math.log((doc_count + 1) / (term_doc_count + 1))
-
+        num_docs_with_term = len(self.index[token])
+        return math.log((doc_count + 1) / (num_docs_with_term + 1))
 
     def get_tf(self, doc_id: int, term: str) -> int:
         tokens = tokenize_text(term)
