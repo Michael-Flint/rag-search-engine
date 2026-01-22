@@ -5,6 +5,9 @@ DEFAULT_SEARCH_LIMIT = 5
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 CACHE_PATH = os.path.join(PROJECT_ROOT, "cache")
+BM25_K1 = 1.5   #BM25 TermFreq saturation tuning factor
+BM25_B = 0.75   #BM25 DocumentLength normalisation factor (Longer documents are penalised, shorter documents are boosted)
+
 
 
 

@@ -5,7 +5,7 @@ import sys
 
 from lib.keyword_search import search_command, tokenize_text
 from lib.index import InvertedIndex
-
+from lib.search_utils import BM25_K1, BM25_B
 
 def search_and_print(idx, tokens):
     results = []
@@ -47,8 +47,8 @@ def main() -> None:
     search_parser.add_argument("query", type=str, help="Search query")                  #Query = noun,  "I want you to search for NOUN"
 
     #Inverse document frequency (rare terms are more important than common ones)
-    search_parser = subparsers.add_parser("idf", help="Test the rarity of a term")
-    search_parser.add_argument("term", type=str, help="Term to be tested")
+    idf_parser = subparsers.add_parser("idf", help="Test the rarity of a term")
+    idf_parser.add_argument("term", type=str, help="Term to be tested")
 
     #Build an index 
     build_parser = subparsers.add_parser("build", help="Build movie index and save it to disk")
@@ -62,25 +62,27 @@ def main() -> None:
     )
 
     #TermFrequency command
-    search_parser = subparsers.add_parser("tf", help="Count the instances of a term in a DocumentID")
-    search_parser.add_argument("doc_id", type=int, help="tf DocumentID term")
-    search_parser.add_argument("term", type=str, help="tf DocumentID term")
+    tf_parser = subparsers.add_parser("tf", help="Count the instances of a term in a DocumentID")
+    tf_parser.add_argument("doc_id", type=int, help="tf DocumentID term")
+    tf_parser.add_argument("term", type=str, help="tf DocumentID term")
 
 
     #TermFrequencyInverseDocFrequency command
-    search_parser = subparsers.add_parser("tfidf", help="Calculate the TermFrequency-InverseDocumentFrequency of a term")
-    search_parser.add_argument("doc_id", type=int, help="tfidf DocumentID term")
-    search_parser.add_argument("term", type=str, help="tfidf DocumentID term")
+    tfidf_parser = subparsers.add_parser("tfidf", help="Calculate the TermFrequency-InverseDocumentFrequency of a term")
+    tfidf_parser.add_argument("doc_id", type=int, help="tfidf DocumentID term")
+    tfidf_parser.add_argument("term", type=str, help="tfidf DocumentID term")
 
 
     #Okapi BM25 version of IDF
-    search_parser = subparsers.add_parser("bm25idf", help="Okapi BM25 version of Inverse Document Frequency")
-    search_parser.add_argument("term", type=str, help="bm25idf term")
+    bm25_idf_parser = subparsers.add_parser("bm25idf", help="Okapi BM25 version of Inverse Document Frequency")
+    bm25_idf_parser.add_argument("term", type=str, help="bm25idf term")
 
     #Okapi BM25 version of TF
-    search_parser = subparsers.add_parser("bm25tf", help="Okapi BM25 version of Term Frequency")
-    search_parser.add_argument("doc_id", type=int, help="bm25tf DocumentID term")
-    search_parser.add_argument("term", type=str, help="bm25tf DocumentID term")
+    bm25_tf_parser = subparsers.add_parser("bm25tf", help="Okapi BM25 version of Term Frequency")
+    bm25_tf_parser.add_argument("doc_id", type=int, help="bm25tf DocumentID term")
+    bm25_tf_parser.add_argument("term", type=str, help="bm25tf DocumentID term")
+    bm25_tf_parser.add_argument("k1", type=float, nargs='?', default=BM25_K1, help="Tunable BM25 k1 parameter")
+    bm25_tf_parser.add_argument("b", type=float, nargs='?', default=BM25_B, help="Tunable BM25 b parameter")
 
 
 
