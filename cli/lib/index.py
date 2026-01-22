@@ -1,3 +1,4 @@
+import math
 import os
 import pickle
 from collections import defaultdict, Counter
@@ -51,25 +52,27 @@ class InvertedIndex:
         token = token.lower()
         return sorted(self.index.get(token, set()))
     
+    def get_idf(self, term: str) -> float:
+        tokens = tokenize_text(term)
+        if len(tokens) != 1:
+            raise ValueError("term must be a single token")
+        token = tokens[0]
+        doc_count = len(self.docmap)
+        term_doc_count = len(self.index[token])
+        return math.log((doc_count + 1) / (term_doc_count + 1))
 
 
-    def get_tf(self, doc_id, term):
-        tokenised_term = tokenize_text(term)
-        # term should be a single token, otherwise raise exception
-        if len(tokenised_term) != 1:
-            #print(f"Term: {term}, tokenised: {tokenised_term}")
-            raise Exception("Term should be a single word")
-
-        single_term = tokenised_term[0]
-        
-        #if tokenised_term not in self.term_frequencies[doc_id]:
-        if doc_id not in self.term_frequencies:
-            # If term not found in the dictionary, return 0
-            return 0
-        # Otherwise, return the # times it is found in the specific document  
-        # Counter automatically returns a 0 if the term is not found
-        return self.term_frequencies[doc_id][single_term]
-
+    def get_tf(self, doc_id: int, term: str) -> int:
+        tokens = tokenize_text(term)
+        if len(tokens) != 1:
+            raise ValueError("term must be a single token")
+        token = tokens[0]
+        return self.term_frequencies[doc_id][token]
+    
+    def get_tf_idf(self, doc_id: int, term: str) -> float:
+        tf = self.get_tf(doc_id, term)
+        idf = self.get_idf(term)
+        return tf * idf
     
     def load(self):
         # Load the index and docmap from disk using pickle

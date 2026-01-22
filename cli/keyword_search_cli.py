@@ -68,7 +68,7 @@ def main() -> None:
     search_parser.add_argument("term", type=str, help="tf DocumentID term")
 
 
-    #TermFrequency command
+    #TermFrequencyInverseDocFrequency command
     search_parser = subparsers.add_parser("tfidf", help="Calculate the TermFrequency-InverseDocumentFrequency of a term")
     search_parser.add_argument("doc_id", type=int, help="tfidf DocumentID term")
     search_parser.add_argument("term", type=str, help="tfidf DocumentID term")
@@ -95,13 +95,7 @@ def main() -> None:
             except FileNotFoundError as e:
                 print("Index not found, run build first")
                 sys.exit(1)
-
-            tokenised_text = tokenize_text(args.term)
-            search_term = tokenised_text[0]
-            total_doc_count = idx.num_documents()
-            term_freq = idx.num_documents_with_token(search_term)
-            idf = math.log((total_doc_count + 1)/(term_freq + 1))       # +1's are to prevent division by zero errors when term not found
-            
+            idf = idx.get_idf(args.term)            
             print(f"Inverse document frequency of '{args.term}': {idf:.2f}")
 
         case "index":
@@ -116,10 +110,6 @@ def main() -> None:
                 print("Index not found, run build first")
                 sys.exit(1)
             print(f"Searching for: {args.query}")
-
-            #results = search_command(args.query)
-            #for i, res in enumerate(results, 1):
-            #    print(f"{i}. {res['title']}")
 
             # Iterate over each token in the query and use the index to get any matching documents for each token.            
             search_and_print(idx, tokenize_text(args.query))
@@ -149,16 +139,8 @@ def main() -> None:
             except FileNotFoundError as e:
                 print("Index not found, run build first")
                 sys.exit(1)
-
-            tokenised_text = tokenize_text(args.term)
-            search_term = tokenised_text[0]
-            total_doc_count = idx.num_documents()
-            df = idx.num_documents_with_token(search_term)
-            term_freq = idx.get_tf(args.doc_id, search_term)
-            idf = math.log((total_doc_count + 1)/(df + 1))       # +1's are to prevent division by zero errors when term not found
-
-            tf_idf = term_freq * idf
-            print(f"IDF: {idf}, TermFreq: {term_freq}")
+            
+            tf_idf = idx.get_tf_idf(args.doc_id, args.term)
             print(f"TF-IDF score of '{args.term}' in document '{args.doc_id}': {tf_idf:.2f}")
 
 
