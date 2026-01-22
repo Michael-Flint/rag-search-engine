@@ -6,6 +6,8 @@ from .keyword_search import tokenize_text
 from .search_utils import load_movies, CACHE_PATH
 
 
+BM25_K1 = 1.5   #BM25 TermFreq saturation tuning factor
+
 
 class InvertedIndex:
     def __init__(self):        
@@ -54,6 +56,11 @@ class InvertedIndex:
         num_docs_without_term = len(self.docmap) - num_docs_with_term
         bm25_idf = math.log((num_docs_without_term + 0.5) / (num_docs_with_term + 0.5) + 1)  # 0.5 and 1 are for edge cases and smoothing
         return bm25_idf
+    
+    def get_bm25_tf(self, doc_id, term, k1=BM25_K1):
+        tf = self.get_tf(doc_id, term)
+        bm25tf = (tf * (k1+1))/ (tf + k1)
+        return bm25tf
 
     def get_documents(self, token: str):
         # Get the set of document ID's for a given token (set it to lowercase)

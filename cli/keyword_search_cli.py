@@ -77,6 +77,11 @@ def main() -> None:
     search_parser = subparsers.add_parser("bm25idf", help="Okapi BM25 version of Inverse Document Frequency")
     search_parser.add_argument("term", type=str, help="bm25idf term")
 
+    #Okapi BM25 version of TF
+    search_parser = subparsers.add_parser("bm25tf", help="Okapi BM25 version of Term Frequency")
+    search_parser.add_argument("doc_id", type=int, help="bm25tf DocumentID term")
+    search_parser.add_argument("term", type=str, help="bm25tf DocumentID term")
+
 
 
     args = parser.parse_args()
@@ -93,6 +98,16 @@ def main() -> None:
             bm25idf = idx.get_bm25_idf(args.term)            
             print(f"BM25 IDF score of '{args.term}': {bm25idf:.2f}")
         
+        case "bm25tf":
+            idx = InvertedIndex()
+
+            try:            
+                idx.load()
+            except FileNotFoundError as e:
+                print("Index not found, run build first")
+                sys.exit(1)
+            bm25tf = idx.get_bm25_tf(args.doc_id, args.term)            
+            print(f"BM25 TF score of '{args.term}' in document '{args.doc_id}': {bm25tf:.2f}")
         
         
         case "build":
