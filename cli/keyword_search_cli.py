@@ -5,7 +5,7 @@ import sys
 
 from lib.keyword_search import search_command, tokenize_text
 from lib.index import InvertedIndex
-from lib.search_utils import BM25_K1, BM25_B
+from lib.search_utils import DEFAULT_SEARCH_LIMIT, BM25_K1, BM25_B
 
 def search_and_print(idx, tokens):
     results = []
@@ -84,6 +84,10 @@ def main() -> None:
     bm25_tf_parser.add_argument("k1", type=float, nargs='?', default=BM25_K1, help="Tunable BM25 k1 parameter")
     bm25_tf_parser.add_argument("b", type=float, nargs='?', default=BM25_B, help="Tunable BM25 b parameter")
 
+    #Okapi BM25 search parser
+    bm25_search_parser = subparsers.add_parser("bm25search", help="Search movies using full BM25 scoring")
+    bm25_search_parser.add_argument("query", type=str, help="Search query")
+    bm25_search_parser.add_argument("--limit", type=int, default=DEFAULT_SEARCH_LIMIT, help=f"Optionally limit the results (default: {DEFAULT_SEARCH_LIMIT})",)
 
 
     args = parser.parse_args()
@@ -110,6 +114,24 @@ def main() -> None:
                 sys.exit(1)
             bm25tf = idx.get_bm25_tf(args.doc_id, args.term)            
             print(f"BM25 TF score of '{args.term}' in document '{args.doc_id}': {bm25tf:.2f}")
+
+        case "bm25search":            
+            print("Loading index")
+            idx = InvertedIndex()
+            try:            
+                idx.load()
+            except FileNotFoundError as e:
+                print("Index not found, run build first")
+                sys.exit(1)
+            print(f"Searching for: {args.query}")
+
+            search_results = idx.bm25_search(args.query, args.limit)
+
+            for i, res in enumerate(search_results, 1):
+                print(f"{i}. ({res['doc_id']}) {res['title']} - Score: {res['score']:.2f}")
+
+            
+
         
         
         case "build":

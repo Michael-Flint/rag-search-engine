@@ -116,6 +116,39 @@ class InvertedIndex:
 
 
 
+    def bm25(self, doc_id, term):
+        bm25_tf = self.get_bm25_tf(doc_id, term)
+        bm25_idf = self.get_bm25_idf(term)
+        return bm25_tf * bm25_idf
+
+
+
+    def bm25_search(self, query, limit):
+        queries = tokenize_text(query)
+        
+        scores = {}
+
+        for token in queries:
+            for doc_id in self.index[token]:
+                doc_bm25 = self.bm25(doc_id, token)
+                # Make sure this doc_id exists in the dictionary
+                if doc_id not in scores:
+                    scores[doc_id] = 0
+                scores[doc_id] += doc_bm25
+
+        sorted_top5_scores = sorted(scores.items(), key=lambda item: item[1], reverse=True)[:limit]
+        
+        return_data = []
+        for doc_id, score in sorted_top5_scores:
+            return_data.append({
+                "doc_id": doc_id,
+                "title": self.docmap[doc_id]["title"],
+                "score": score
+            })
+
+        return return_data
+
+
 
     def get_bm25_idf(self, term: str) -> float:
         tokens = tokenize_text(term)
