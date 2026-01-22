@@ -68,6 +68,12 @@ def main() -> None:
     search_parser.add_argument("term", type=str, help="tf DocumentID term")
 
 
+    #TermFrequency command
+    search_parser = subparsers.add_parser("tfidf", help="Calculate the TermFrequency-InverseDocumentFrequency of a term")
+    search_parser.add_argument("doc_id", type=int, help="tfidf DocumentID term")
+    search_parser.add_argument("term", type=str, help="tfidf DocumentID term")
+
+
 
     args = parser.parse_args()
 
@@ -133,6 +139,27 @@ def main() -> None:
             term_freq = idx.get_tf(args.doc_id, args.term)
             #print(f"Found {term_freq} instances of {args.term} in document_id: {args.doc_id}")
             print(term_freq)
+
+        case "tfidf": 
+            #print("Loading index")
+            idx = InvertedIndex()
+
+            try:            
+                idx.load()
+            except FileNotFoundError as e:
+                print("Index not found, run build first")
+                sys.exit(1)
+
+            tokenised_text = tokenize_text(args.term)
+            search_term = tokenised_text[0]
+            total_doc_count = idx.num_documents()
+            df = idx.num_documents_with_token(search_term)
+            term_freq = idx.get_tf(args.doc_id, search_term)
+            idf = math.log((total_doc_count + 1)/(df + 1))       # +1's are to prevent division by zero errors when term not found
+
+            tf_idf = term_freq * idf
+            print(f"IDF: {idf}, TermFreq: {term_freq}")
+            print(f"TF-IDF score of '{args.term}' in document '{args.doc_id}': {tf_idf:.2f}")
 
 
         case _:
