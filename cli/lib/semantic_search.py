@@ -68,6 +68,15 @@ class SemanticSearch:
     
 
 
+def embed_query_text(query):
+    ss = SemanticSearch()
+
+    embedding = ss.generate_embedding(query)
+    print(f"Query: {query}")
+    print(f"First 5 dimensions: {embedding[:5]}")
+    print(f"Shape: {embedding.shape}")
+
+
 def embed_text(text):
     ss = SemanticSearch()
 
