@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from lib.semantic_search import embed_text, verify_model
+from lib.semantic_search import embed_text, verify_model, verify_embeddings
 
 def main():
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
@@ -14,9 +14,18 @@ def main():
     # Remember when adding additional commands, that if we are only registering the command we don't need to set a variable equal to the subparsers.add_parser
     # variable = subparsers.add_parser is needed when we need subsequent lines to add parameters via .add_argument
 
-
     embed_text_parser = subparsers.add_parser("embed_text", help="Generate the embedded values from text")
     embed_text_parser.add_argument("text", type=str, help="embed_text text")
+
+    subparsers.add_parser("verify_embeddings", help="Verify the embedded values")
+    
+
+
+
+
+
+
+
 
 
     args = parser.parse_args()
@@ -27,6 +36,9 @@ def main():
 
         case "verify":            
             verify_model()
+
+        case "verify_embeddings":            
+            verify_embeddings()
 
         case _:
             parser.print_help()
