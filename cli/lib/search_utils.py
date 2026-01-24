@@ -2,6 +2,7 @@ import json
 import os
 
 DEFAULT_SEARCH_LIMIT = 5
+DEFAULT_CHUNK_LIMIT = 200
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 CACHE_PATH = os.path.join(PROJECT_ROOT, "cache")
