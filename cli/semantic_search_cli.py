@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
-from lib.semantic_search import embed_query_text, embed_text, verify_model, verify_embeddings
+from lib.semantic_search import embed_query_text, embed_text, cmd_search, verify_model, verify_embeddings
+from lib.search_utils import DEFAULT_SEARCH_LIMIT
 
 def main():
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
@@ -19,6 +20,10 @@ def main():
 
     embed_text_parser = subparsers.add_parser("embed_text", help="Generate the embedded values from text")
     embed_text_parser.add_argument("text", type=str, help="embed_text text")
+
+    search_parser = subparsers.add_parser("search", help="Use semantic search to find movies by meaning")
+    search_parser.add_argument("query", type=str, help="search query")
+    search_parser.add_argument("--limit", type=int, default=DEFAULT_SEARCH_LIMIT, help=f"Optionally limit the results (default: {DEFAULT_SEARCH_LIMIT})",)
 
     subparsers.add_parser("verify_embeddings", help="Verify the embedded values")
     
@@ -39,6 +44,9 @@ def main():
 
         case "embed_text":
             embed_text(args.text)
+
+        case "search":
+            cmd_search(args.query, args.limit)
 
         case "verify":            
             verify_model()

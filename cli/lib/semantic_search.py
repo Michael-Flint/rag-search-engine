@@ -1,5 +1,4 @@
 import os
-#import string
 import numpy as np
 
 from .search_utils import CACHE_PATH, load_movies
@@ -11,9 +10,11 @@ class SemanticSearch:
         self.document_map = {}
         self.documents = None
         self.embeddings = None
-        # Load the model (downloads automatically the first time)
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.embeddings_path = os.path.join(CACHE_PATH, "movie_embeddings.npy")
+        self.embeddings_index_path = os.path.join(CACHE_PATH, "movie_embeddings_id_map.npy")
+        self.id_to_index = {}    # doc_id -> row index in embeddings        
+        self.model = SentenceTransformer('all-MiniLM-L6-v2')    # Load the model (downloads automatically the first time)
+        
 
     def build_embeddings(self, documents):        
         self.documents = documents
@@ -29,11 +30,15 @@ class SemanticSearch:
     
         #Use the model to encode the movie strings
         embeddings = self.model.encode(doc_string_rep, show_progress_bar=True)
-        self.embeddings = embeddings    
+        self.embeddings = embeddings 
 
-        # Save the embeddings         
+        # map each doc_id to its row index in the embeddings array
+        self.id_to_index = {doc["id"]: i for i, doc in enumerate(documents)}
+
+        # save both embeddings and the id map
         np.save(self.embeddings_path, embeddings)
-
+        np.save(self.embeddings_index_path, self.id_to_index)
+   
         return self.embeddings
     
 
@@ -48,9 +53,44 @@ class SemanticSearch:
         input_list.append(text)
 
         return self.model.encode(input_list)[0]
+    
+    def get_vector_for_id(self, doc_id):
+        idx = self.id_to_index[doc_id]
+        return self.embeddings[idx]
 
+   
 
+    def search(self, query, limit):
+        if len(self.embeddings) == 0:
+            raise ValueError("No embeddings loaded. Call `load_or_create_embeddings` first.")
 
+        #Generate embedding 
+        query_embedding = self.generate_embedding(query)
+
+        similarity_list = []
+
+        #Calculate cosine similarity between the query embedding and each document embedding
+        for doc in self.documents:
+            doc_id = doc["id"]
+            doc_vec = self.get_vector_for_id(doc_id)
+            score = cosine_similarity(query_embedding, doc_vec)
+
+            #Create a list of (similarity_score, document) tuples
+            similarity_list.append(
+                {
+                    "score": float(score),
+                    "title": doc["title"],
+                    "description": doc["description"],
+                }
+            )
+
+        #Sort by similarity, descending
+        similarity_list.sort(key=lambda x: x["score"], reverse=True)
+
+        #Return top `limit` results
+        return similarity_list[:limit]
+        
+    
     def load_or_create_embeddings(self, documents):
         self.documents = documents
 
@@ -61,11 +101,23 @@ class SemanticSearch:
         if os.path.exists(self.embeddings_path):
             self.embeddings = np.load(self.embeddings_path)           
             if len(self.embeddings) == len(documents):
+                self.id_to_index = np.load(self.embeddings_index_path, allow_pickle=True).item()
                 return self.embeddings
         
         # Length does not match, rebuild
         return self.build_embeddings(documents)
     
+
+def cosine_similarity(vec1, vec2):
+    dot_product = np.dot(vec1, vec2)
+    norm1 = np.linalg.norm(vec1)
+    norm2 = np.linalg.norm(vec2)
+
+    if norm1 == 0 or norm2 == 0:
+        return 0.0
+
+    return dot_product / (norm1 * norm2)
+
 
 
 def embed_query_text(query):
@@ -84,6 +136,21 @@ def embed_text(text):
     print(f"Text: {text}")
     print(f"First 3 dimensions: {embedding[:3]}")
     print(f"Dimensions: {embedding.shape[0]}")
+
+def cmd_search(query, limit):
+    ss = SemanticSearch()
+    
+    docs = load_movies()
+    ss.load_or_create_embeddings(docs)
+    results = ss.search(query, limit)
+
+    print(f"Query: {query}")
+    print(f"Top {len(results)} results:")
+    print()
+
+    for i, res in enumerate(results, 1):
+        print(f"{i}. {res['title']} (score: {res['score']:.4f})\n   {res['description'][:100]}...")
+
 
 
 
