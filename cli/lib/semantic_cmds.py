@@ -1,5 +1,4 @@
-#import os
-#import numpy as np
+import re
 
 from .semantic_search import SemanticSearch
 from .search_utils import load_movies
@@ -60,6 +59,28 @@ def cmd_search(query, limit):
 
     for i, res in enumerate(results, 1):
         print(f"{i}. {res['title']} (score: {res['score']:.4f})\n   {res['description'][:100]}...")
+
+
+def cmd_semantic_chunk(text, max_chunk_size, overlap):    
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+    chunks = []    
+    
+    n_sentences = len(sentences)
+    i = 0
+    
+    while i < n_sentences:
+        chunk_sentences = sentences[i : i + max_chunk_size]
+        if chunks and len(chunk_sentences) <= overlap:
+            break
+
+        chunks.append(" ".join(chunk_sentences))
+        i += max_chunk_size - overlap
+
+
+    print(f"Semantically chunking {len(text)} characters")
+    for i, chunk in enumerate(chunks, 1):
+        print(f"{i}. {chunk}")
+
 
 
 def cmd_verify_embeddings():

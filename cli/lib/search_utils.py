@@ -3,7 +3,8 @@ import os
 
 DEFAULT_SEARCH_LIMIT = 5
 DEFAULT_CHUNK_LIMIT = 200
-DEFAULT_CHUNK_OVERLAP = 0
+DEFAULT_SEMANTIC_CHUNK_SIZE = 4
+DEFAULT_CHUNK_OVERLAP = 1
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 CACHE_PATH = os.path.join(PROJECT_ROOT, "cache")

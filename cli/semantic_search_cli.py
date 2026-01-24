@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
-from lib.semantic_cmds import cmd_chunk, cmd_embed_query_text, cmd_embed_text, cmd_search, cmd_verify_model, cmd_verify_embeddings
-from lib.search_utils import DEFAULT_SEARCH_LIMIT, DEFAULT_CHUNK_LIMIT, DEFAULT_CHUNK_OVERLAP
+from lib.semantic_cmds import cmd_chunk, cmd_embed_query_text, cmd_embed_text, cmd_search, cmd_semantic_chunk,  cmd_verify_model, cmd_verify_embeddings
+from lib.search_utils import DEFAULT_SEARCH_LIMIT, DEFAULT_CHUNK_LIMIT, DEFAULT_CHUNK_OVERLAP, DEFAULT_SEMANTIC_CHUNK_SIZE
 
 def main():
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
@@ -17,7 +17,6 @@ def main():
 
     chunk_parser = subparsers.add_parser("chunk", help="Implement fixed-size chunking to split long text for embedding")
     chunk_parser.add_argument("text", type=str, help="chunk text position")
-    #chunk_parser.add_argument("position", type=int, help="chunk text position")
     chunk_parser.add_argument("--chunk-size", type=int, default=DEFAULT_CHUNK_LIMIT, help=f"Optionally specify the chunk size (default: {DEFAULT_CHUNK_LIMIT})",)
     chunk_parser.add_argument("--overlap", type=int, default=DEFAULT_CHUNK_OVERLAP, help=f"Optionally specify the chunk overlap (default: {DEFAULT_CHUNK_OVERLAP})",)
     
@@ -30,6 +29,11 @@ def main():
     search_parser = subparsers.add_parser("search", help="Use semantic search to find movies by meaning")
     search_parser.add_argument("query", type=str, help="search query")
     search_parser.add_argument("--limit", type=int, default=DEFAULT_SEARCH_LIMIT, help=f"Optionally limit the results (default: {DEFAULT_SEARCH_LIMIT})",)
+
+    semantic_chunk_parser = subparsers.add_parser("semantic_chunk", help="Implement semantic based chunking to split long text for embedding")
+    semantic_chunk_parser.add_argument("text", type=str, help="chunk text")
+    semantic_chunk_parser.add_argument("--max-chunk-size", type=int, default=DEFAULT_SEMANTIC_CHUNK_SIZE, help=f"Optionally specify the chunk size (default: {DEFAULT_SEMANTIC_CHUNK_SIZE})",)
+    semantic_chunk_parser.add_argument("--overlap", type=int, default=DEFAULT_CHUNK_OVERLAP, help=f"Optionally specify the chunk overlap (default: {DEFAULT_CHUNK_OVERLAP})",)
 
     subparsers.add_parser("verify_embeddings", help="Verify the embedded values")
     
@@ -46,7 +50,6 @@ def main():
 
     match args.command:
         case "chunk":
-            #cmd_chunk(args.text, args.position, args.chunk_size)
             cmd_chunk(args.text, args.chunk_size, args.overlap)
         
         case "embedquery":
@@ -57,6 +60,9 @@ def main():
 
         case "search":
             cmd_search(args.query, args.limit)
+
+        case "semantic_chunk":
+            cmd_semantic_chunk(args.text, args.max_chunk_size, args.overlap)
 
         case "verify":            
             cmd_verify_model()
