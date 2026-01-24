@@ -2,7 +2,7 @@
 
 import argparse
 from lib.semantic_cmds import cmd_chunk, cmd_embed_query_text, cmd_embed_text, cmd_search, cmd_verify_model, cmd_verify_embeddings
-from lib.search_utils import DEFAULT_SEARCH_LIMIT, DEFAULT_CHUNK_LIMIT
+from lib.search_utils import DEFAULT_SEARCH_LIMIT, DEFAULT_CHUNK_LIMIT, DEFAULT_CHUNK_OVERLAP
 
 def main():
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
@@ -19,6 +19,7 @@ def main():
     chunk_parser.add_argument("text", type=str, help="chunk text position")
     #chunk_parser.add_argument("position", type=int, help="chunk text position")
     chunk_parser.add_argument("--chunk-size", type=int, default=DEFAULT_CHUNK_LIMIT, help=f"Optionally specify the chunk size (default: {DEFAULT_CHUNK_LIMIT})",)
+    chunk_parser.add_argument("--overlap", type=int, default=DEFAULT_CHUNK_OVERLAP, help=f"Optionally specify the chunk overlap (default: {DEFAULT_CHUNK_OVERLAP})",)
     
     embed_query_parser = subparsers.add_parser("embedquery", help="Convert user search queries into embedding vectors")
     embed_query_parser.add_argument("query", type=str, help="embedquery query")
@@ -46,7 +47,7 @@ def main():
     match args.command:
         case "chunk":
             #cmd_chunk(args.text, args.position, args.chunk_size)
-            cmd_chunk(args.text, args.chunk_size)
+            cmd_chunk(args.text, args.chunk_size, args.overlap)
         
         case "embedquery":
             cmd_embed_query_text(args.query)

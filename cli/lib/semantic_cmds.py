@@ -6,30 +6,24 @@ from .search_utils import load_movies
 
 
 
-#def cmd_chunk(text, position, chunk_size):    
-def cmd_chunk(text, chunk_size):    
-    split_words = text.split()
+def cmd_chunk(text, chunk_size, overlap):    
+    words = text.split()    
+    chunks = []    
     
-    words_chunk = []
-    output = []
-    j = 0
+    n_words = len(words)
+    i = 0
     
-    for word in split_words:
-        #print(f"J: {j}, word: {word}")
-        if j < chunk_size:
-            words_chunk.append(word)
-            j += 1
-        else:            
-            output.append(" ".join(words_chunk))
-            j = 1
-            words_chunk = []
-            words_chunk.append(word)
-        
-    if len(words_chunk) >0 :
-        output.append(" ".join(words_chunk))
+    while i < n_words:
+        chunk_words = words[i : i + chunk_size]
+        if chunks and len(chunk_words) <= overlap:
+            break
+
+        chunks.append(" ".join(chunk_words))
+        i += chunk_size - overlap
+
 
     print(f"Chunking {len(text)} characters")
-    for i, chunk in enumerate(output, 1):
+    for i, chunk in enumerate(chunks, 1):
         print(f"{i}. {chunk}")
 
 
