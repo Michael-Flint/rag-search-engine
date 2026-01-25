@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from lib.semantic_cmds import cmd_chunk, cmd_embed_query_text, cmd_embed_text, cmd_search, cmd_semantic_chunk,  cmd_verify_model, cmd_verify_embeddings
+from lib.semantic_cmds import cmd_chunk, cmd_embed_chunks, cmd_embed_query_text, cmd_embed_text, cmd_search, cmd_search_chunked, cmd_semantic_chunk, cmd_verify_model, cmd_verify_embeddings
 from lib.search_utils import DEFAULT_SEARCH_LIMIT, DEFAULT_CHUNK_LIMIT, DEFAULT_CHUNK_OVERLAP, DEFAULT_SEMANTIC_CHUNK_SIZE
 
 def main():
@@ -9,7 +9,8 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
     
     
-    #Add the verify command to the CLI interpreter
+    #Add the standalone commands to the CLI interpreter
+    subparsers.add_parser("embed_chunks", help="Create embeddings for document chunks")
     subparsers.add_parser("verify", help="Verify the LLM model")
 
     # Remember when adding additional commands, that if we are only registering the command we don't need to set a variable equal to the subparsers.add_parser
@@ -29,6 +30,10 @@ def main():
     search_parser = subparsers.add_parser("search", help="Use semantic search to find movies by meaning")
     search_parser.add_argument("query", type=str, help="search query")
     search_parser.add_argument("--limit", type=int, default=DEFAULT_SEARCH_LIMIT, help=f"Optionally limit the results (default: {DEFAULT_SEARCH_LIMIT})",)
+
+    search_chunked_parser = subparsers.add_parser("search_chunked", help="Query against chunk embeddings and aggregate results")
+    search_chunked_parser.add_argument("query", type=str, help="search query")
+    search_chunked_parser.add_argument("--limit", type=int, default=DEFAULT_SEARCH_LIMIT, help=f"Optionally limit the results (default: {DEFAULT_SEARCH_LIMIT})",)
 
     semantic_chunk_parser = subparsers.add_parser("semantic_chunk", help="Implement semantic based chunking to split long text for embedding")
     semantic_chunk_parser.add_argument("text", type=str, help="chunk text")
@@ -52,14 +57,20 @@ def main():
         case "chunk":
             cmd_chunk(args.text, args.chunk_size, args.overlap)
         
-        case "embedquery":
-            cmd_embed_query_text(args.query)
+        case "embed_chunks":
+            cmd_embed_chunks()
 
         case "embed_text":
             cmd_embed_text(args.text)
 
+        case "embedquery":
+            cmd_embed_query_text(args.query)
+
         case "search":
             cmd_search(args.query, args.limit)
+
+        case "search_chunked":
+            cmd_search_chunked(args.query, args.limit)
 
         case "semantic_chunk":
             cmd_semantic_chunk(args.text, args.max_chunk_size, args.overlap)

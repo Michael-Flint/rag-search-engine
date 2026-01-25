@@ -1,11 +1,9 @@
-import re
-
-from .semantic_search import SemanticSearch
+from .semantic_search import SemanticSearch, ChunkedSemanticSearch, semantic_chunk
 from .search_utils import load_movies
 
 
 
-def cmd_chunk(text, chunk_size, overlap):    
+def cmd_chunk(text, chunk_size, overlap):        
     words = text.split()    
     chunks = []    
     
@@ -20,10 +18,18 @@ def cmd_chunk(text, chunk_size, overlap):
         chunks.append(" ".join(chunk_words))
         i += chunk_size - overlap
 
-
     print(f"Chunking {len(text)} characters")
     for i, chunk in enumerate(chunks, 1):
         print(f"{i}. {chunk}")
+
+
+
+def cmd_embed_chunks():
+    css = ChunkedSemanticSearch()
+
+    docs = load_movies()
+    embeddings = css.load_or_create_chunk_embeddings(docs)
+    print(f"Generated {len(embeddings)} chunked embeddings")
 
 
 
@@ -61,21 +67,24 @@ def cmd_search(query, limit):
         print(f"{i}. {res['title']} (score: {res['score']:.4f})\n   {res['description'][:100]}...")
 
 
+def cmd_search_chunked(query, limit):
+    css = ChunkedSemanticSearch()
+    
+    docs = load_movies()
+    css.load_or_create_chunk_embeddings(docs)
+    results = css.search_chunks(query, limit)
+
+    print(f"Query: {query}")
+    print(f"Top {len(results)} results:")
+    print()
+
+    for i, res in enumerate(results, 1):
+        print(f"\n{i}. {res['title']} (score: {res['score']:.4f})")
+        print(f"   {res['document'][:100]}...")
+
+
 def cmd_semantic_chunk(text, max_chunk_size, overlap):    
-    sentences = re.split(r"(?<=[.!?])\s+", text)
-    chunks = []    
-    
-    n_sentences = len(sentences)
-    i = 0
-    
-    while i < n_sentences:
-        chunk_sentences = sentences[i : i + max_chunk_size]
-        if chunks and len(chunk_sentences) <= overlap:
-            break
-
-        chunks.append(" ".join(chunk_sentences))
-        i += max_chunk_size - overlap
-
+    chunks = semantic_chunk(text, max_chunk_size, overlap)
 
     print(f"Semantically chunking {len(text)} characters")
     for i, chunk in enumerate(chunks, 1):
